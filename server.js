@@ -12,6 +12,7 @@ const userroute = require("./routes/userRoutes");
 const hotelroute = require("./routes/hotelRoutes");
 const roomroute = require("./routes/roomRoutes");
 const bookingroute = require("./routes/bookingRoutes");
+const { WebhookCheckout } = require("./services/bookingService");
 
 // connection with db
 dbconnection();
@@ -23,6 +24,12 @@ app.use(express.static(path.join(__dirname, "uploads")));
 app.use(cors());
 
 app.use(compression());
+
+app.post(
+  "/webhook-checkout",
+  express.raw({ type: "application/json" }),
+  WebhookCheckout
+);
 
 if (process.env.NODE_ENV == "development") {
   app.use(morgan("dev"));

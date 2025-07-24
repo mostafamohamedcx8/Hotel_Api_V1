@@ -185,3 +185,39 @@ exports.CheckoutSession = asyncHandler(async (req, res, next) => {
   });
   res.status(200).json({ status: "success", session });
 });
+
+const createCardOrder = async (session) => {
+  const bookingId = session.client_reference_id;
+
+  const booking = await Booking.findById(bookingId);
+
+  if (!booking) {
+    console.log(`Booking not found for ID ${bookingId}`);
+    return;
+  }
+
+  booking.ispaid = true;
+  booking.paymentMethod = "Card";
+  booking.status = "confirmed";
+  booking.paymentAt = new Date();
+
+  await booking.save();
+};
+
+exports.WebhookCheckout = asyncHandler(async (req, res, next) => {
+  const sig = req.headers["stripe-signature"];
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+  } catch (err) {
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+  if (event.type === "checkout.session.completed") {
+    createCardOrder(event.data.object);
+  }
+  res.status(200).json({ received: true });
+});
