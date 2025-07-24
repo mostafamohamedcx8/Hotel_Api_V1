@@ -60,10 +60,10 @@ exports.createRoom = asyncHandler(async (req, res, next) => {
   }
 
   // ✅ 3. تأكد من وجود الصور
-  const images = req.body.images || [];
-  if (images.length === 0) {
-    return next(new ApiError("Room images are required", 400));
-  }
+  const images =
+    req.files && req.files.images
+      ? req.files.images.map((file) => file.originalname)
+      : [];
 
   // ✅ 4. إنشاء الغرفة
   const room = await Room.create({
