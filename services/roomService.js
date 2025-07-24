@@ -6,6 +6,7 @@ const Room = require("../models/RoomModel");
 const Hotel = require("../models/HotelModel");
 const ApiError = require("../utils/apiError");
 const ApiFeatures = require("../utils/apiFeatures");
+const cloudinary = require("../config/cloudinary");
 
 exports.uploadRoomImages = uploadMixOfImages([
   {
@@ -20,16 +21,22 @@ exports.resizeRoomImages = asyncHandler(async (req, res, next) => {
   req.body.images = [];
 
   await Promise.all(
-    req.files.images.map(async (img, index) => {
-      const filename = `Room-${uuidv4()}-${Date.now()}-${index}.jpeg`;
+    req.files.images.map(async (img) => {
+      const uploadRes = await cloudinary.uploader.upload_stream(
+        {
+          folder: "rooms",
+        },
+        (error, result) => {
+          if (error) {
+            console.error("Cloudinary upload error:", error);
+            throw error;
+          }
+          req.body.images.push(result.secure_url);
+        }
+      );
 
-      await sharp(img.buffer)
-        .resize(1200, 800) // مقاس مناسب للغرف
-        .toFormat("jpeg")
-        .jpeg({ quality: 90 })
-        .toFile(`uploads/rooms/${filename}`);
-
-      req.body.images.push(filename);
+      // ضروري `.end(buffer)` علشان يرفع الصورة
+      uploadRes.end(img.buffer);
     })
   );
 
