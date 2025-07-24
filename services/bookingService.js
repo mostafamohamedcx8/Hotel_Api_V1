@@ -178,8 +178,8 @@ exports.CheckoutSession = asyncHandler(async (req, res, next) => {
       },
     ],
     mode: "payment",
-    success_url: `http://localhost:3000/mybooking`,
-    cancel_url: `http://localhost:3000/mybooking`,
+    success_url: `https://hotel-booking-app-nine-lyart.vercel.app/mybooking`,
+    cancel_url: `https://hotel-booking-app-nine-lyart.vercel.app/mybooking`,
     customer_email: req.user.email,
     client_reference_id: req.params.id,
   });
