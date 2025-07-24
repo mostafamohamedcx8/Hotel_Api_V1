@@ -13,6 +13,7 @@ const { createRoomValidator } = require("../utils/validation/roomValidation");
 const authService = require("../services/authService");
 
 const router = express.Router();
+router.get("/", getAllRooms);
 
 router.use(authService.protect);
 router.post(
@@ -22,7 +23,6 @@ router.post(
   createRoomValidator,
   createRoom
 );
-router.get("/", getAllRooms);
 router.get("/:id", authService.allowedTo("hotelOwner"), getRoomsByHotel);
 router.put("/:id", toggleRoomAvailability);
 router.get("/specific/:id", getSpecificRoom);

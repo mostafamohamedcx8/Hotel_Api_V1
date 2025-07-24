@@ -168,7 +168,7 @@ exports.CheckoutSession = asyncHandler(async (req, res, next) => {
     line_items: [
       {
         price_data: {
-          currency: "egp",
+          currency: "usd",
           product_data: {
             name: req.user.username,
           },
@@ -178,8 +178,8 @@ exports.CheckoutSession = asyncHandler(async (req, res, next) => {
       },
     ],
     mode: "payment",
-    success_url: `${req.protocol}://${req.get("host")}/mybooking`,
-    cancel_url: `${req.protocol}://${req.get("host")}/mybooking`,
+    success_url: `http://localhost:3000/mybooking`,
+    cancel_url: `http://localhost:3000/mybooking`,
     customer_email: req.user.email,
     client_reference_id: req.params.id,
   });
