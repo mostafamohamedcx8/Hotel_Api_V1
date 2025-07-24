@@ -16,27 +16,32 @@ exports.uploadRoomImages = uploadMixOfImages([
 ]);
 
 exports.resizeRoomImages = asyncHandler(async (req, res, next) => {
-  if (!req.files || !req.files.images) return next();
+  if (!req.files || !req.files.images) {
+    console.log("No files found in request.");
+    return next(new ApiError("Room images are required", 400));
+  }
 
   req.body.images = [];
 
   await Promise.all(
-    req.files.images.map(async (img) => {
-      const uploadRes = await cloudinary.uploader.upload_stream(
-        {
-          folder: "rooms",
-        },
-        (error, result) => {
-          if (error) {
-            console.error("Cloudinary upload error:", error);
-            throw error;
+    req.files.images.map((img) => {
+      return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder: "rooms",
+          },
+          (error, result) => {
+            if (error) {
+              console.error("Cloudinary upload error:", error);
+              return reject(error);
+            }
+            req.body.images.push(result.secure_url);
+            resolve();
           }
-          req.body.images.push(result.secure_url);
-        }
-      );
+        );
 
-      // ضروري `.end(buffer)` علشان يرفع الصورة
-      uploadRes.end(img.buffer);
+        stream.end(img.buffer);
+      });
     })
   );
 
@@ -60,10 +65,7 @@ exports.createRoom = asyncHandler(async (req, res, next) => {
   }
 
   // ✅ 3. تأكد من وجود الصور
-  const images =
-    req.files && req.files.images
-      ? req.files.images.map((file) => file.originalname)
-      : [];
+  const images = req.body.images || [];
 
   // ✅ 4. إنشاء الغرفة
   const room = await Room.create({
